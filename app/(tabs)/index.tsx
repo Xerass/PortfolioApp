@@ -1,5 +1,5 @@
-import { StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, Image, TouchableOpacity, ScrollView, View } from 'react-native';
+import { Text } from '@/components/Themed'; // keep Themed.Text if you want, but use RN.View for full control
 
 const AVATAR = require('@/assets/images/avatar.jpg');
 
@@ -22,74 +22,98 @@ function SkillChip({ label }: { label: string }) {
 
 export default function HomeScreen() {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* HERO */}
-      <View style={styles.hero}>
-        {/* Darker avatar ring */}
-        <View style={styles.avatarRing}>
-          <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+    <View style={styles.screen}> 
+      <ScrollView
+        style={styles.scroller}                 // ✅ colors the scrollable surface
+        contentContainerStyle={styles.container} // spacing/padding lives here
+      >
+        {/* HERO */}
+        <View style={styles.hero}>
+          <View style={styles.avatarRing}>
+            <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+          </View>
+
+          <Text style={styles.welcome}>Welcome to my Portfolio</Text>
+
+          <Text style={styles.headline}>
+            Hi I’m <Text style={styles.headlineAccent}>Jomar Jake Mapa</Text>
+          </Text>
+          <Text style={styles.roleLine}>Developer</Text>
         </View>
 
-        <Text style={styles.welcome}>Welcome to my Portfolio</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.name}>Jomar Jake Mapa</Text>
+          <Text style={styles.tagline}>AI Developer | ML guy</Text>
+        </View>
 
-        <Text style={styles.headline}>
-          Hi I’m <Text style={styles.headlineAccent}>Jomar Jake Mapa</Text>
+        {/* Bio */}
+        <Text style={styles.bio}>
+          Welcome to my portfolio! I enjoy games and stuffs and also developing AI/ML applications.
         </Text>
-        <Text style={styles.roleLine}>Developer</Text>
-      </View>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.name}>Jomar Jake Mapa</Text>
-        <Text style={styles.tagline}>AI Developer | ML guy</Text>
-      </View>
-
-      {/* Bio */}
-      <Text style={styles.bio}>
-        Welcome to my portfolio! I enjoy games and stuffs and also developing AI/ML applications.
-      </Text>
-
-      {/* Skills */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <View style={styles.chipsWrap}>
-          {[
-            'React Native',
-            'Expo',
-            'TypeScript',
-            'React',
-            'Tailwind/RNW',
-            'Supabase',
-            'Node.js',
-            'UI/UX',
-            'Figma',
-          ].map((s) => (
-            <SkillChip key={s} label={s} />
-          ))}
+        {/* Skills */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Skills</Text>
+          <View style={styles.chipsWrap}>
+            {[
+              'Python',
+              'PyTorch',
+              'TensorFlow',
+              'Scikit-learn',
+              'Pandas',
+              'NumPy',
+              'Matplotlib / Seaborn',
+              'Data Visualization',
+              'Deep Learning',
+              'Computer Vision',
+              'NLP',
+              'Transfer Learning',
+              'Model Deployment',
+              'ONNX / TorchScript',
+              'MLOps',
+              'SQL',
+              'Data Engineering',
+              'AI Ethics',
+            ].map((s) => (
+              <SkillChip key={s} label={s} />
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Projects */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Featured Projects</Text>
-        <Text style={styles.sectionText}>[Projects preview will go here]</Text>
-      </View>
+        {/* Projects */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Featured Projects</Text>
+          <Text style={styles.sectionText}>[Projects preview will go here]</Text>
+        </View>
 
-      {/* Contact */}
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Get In Touch</Text>
-        <Text style={styles.sectionText}>[Contact info / form will go here]</Text>
-      </View>
-    </ScrollView>
+        {/* Contact */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Get In Touch</Text>
+          <Text style={styles.sectionText}>[Contact info / form will go here]</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // ✅ Make the whole screen dark (catches safe area + overscroll)
+  screen: {
+    flex: 1,
+    backgroundColor: BG,
+  },
+  // ✅ Color the ScrollView itself (prevents white peeking between items)
+  scroller: {
+    backgroundColor: BG,
+  },
+
   container: {
     paddingHorizontal: 20,
     paddingTop: 36,
     paddingBottom: 32,
-    backgroundColor: BG,
+    // optional: could remove backgroundColor here, since scroller/screen already set
+    // backgroundColor: BG,
   },
 
   /* === HERO === */
@@ -101,7 +125,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 140,
-    backgroundColor: CARD, // now dark instead of white
+    backgroundColor: CARD,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -110,6 +134,8 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    // Android shadows need elevation to show; keep it subtle so it blends with dark bg
+    elevation: 4,
   },
   avatar: {
     width: 124,
@@ -171,7 +197,7 @@ const styles = StyleSheet.create({
 
   /* === CARDS === */
   sectionCard: {
-    backgroundColor: SURFACE, // darker container
+    backgroundColor: SURFACE,
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -201,7 +227,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    backgroundColor: '#1A2642', // darker chip background
+    backgroundColor: '#1A2642',
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#2D406B',

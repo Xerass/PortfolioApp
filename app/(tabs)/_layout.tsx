@@ -1,8 +1,11 @@
+// app/(tabs)/_layout.tsx
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+
+const BG = '#0B1220';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -16,10 +19,14 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+
+        // ✅ This makes the actual screen area dark (fixes white peeking)
+        sceneStyle: { backgroundColor: BG },
+
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: '#cce0ff',
         tabBarStyle: {
-          backgroundColor: 'transparent', // we’ll overlay with gradient
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
           position: 'absolute',
           elevation: 0,
