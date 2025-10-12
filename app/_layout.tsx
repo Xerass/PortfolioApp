@@ -14,17 +14,18 @@ export const unstable_settings = { initialRouteName: '(tabs)' };
 
 SplashScreen.preventAutoHideAsync();
 
+/* === COLOR PALETTE === */
 const BG = '#0B1220';
 const SURFACE = '#111A2C';
 const BORDER = '#1E2A44';
 const TEXT = '#E6EDF3';
 
-// Optional: force a dark-like theme to avoid white flashes between screens
+/* === DARK THEME FIX === */
 const DarkAppTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: BG,     // ✅ critical
+    background: BG,
     card: SURFACE,
     border: BORDER,
     text: TEXT,
@@ -32,13 +33,21 @@ const DarkAppTheme = {
 };
 
 export default function RootLayout() {
+  // ✅ Load JetBrains Mono Regular + Bold
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'JetBrainsMono-Regular': require('../assets/fonts/JetBrainsMono-Regular.ttf'),
+    'JetBrainsMono-Bold': require('../assets/fonts/JetBrainsMono-Bold.ttf'),
     ...FontAwesome.font,
   });
 
-  useEffect(() => { if (error) throw error; }, [error]);
-  useEffect(() => { if (loaded) SplashScreen.hideAsync(); }, [loaded]);
+  useEffect(() => {
+    if (error) throw error;
+  }, [error]);
+
+  useEffect(() => {
+    if (loaded) SplashScreen.hideAsync();
+  }, [loaded]);
+
   if (!loaded) return null;
 
   return <RootLayoutNav />;
@@ -51,7 +60,6 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkAppTheme : DefaultTheme}>
       <Stack
         screenOptions={{
-          // ✅ This makes stack scenes dark too
           contentStyle: { backgroundColor: BG },
           headerShown: false,
         }}

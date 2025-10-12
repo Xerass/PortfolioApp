@@ -1,18 +1,28 @@
-import { StyleSheet, Image, TouchableOpacity, ScrollView, View } from 'react-native';
-import { Text } from '@/components/Themed'; // keep Themed.Text if you want, but use RN.View for full control
+import React from 'react';
+import { StyleSheet, Image, ImageBackground, TouchableOpacity, ScrollView, View } from 'react-native';
+import { Text } from '@/components/Themed';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const AVATAR = require('@/assets/images/avatar.jpg');
+const HERO_BG = require('@/assets/images/bgHero.jpg');
 
-/** Dark palette */
-const ACCENT = '#6FB3FF';
-const BG = '#0B1220';
-const SURFACE = '#111A2C';
-const CARD = '#0F1726';
-const BORDER = '#1E2A44';
-const TEXT = '#E6EDF3';
-const MUTED = '#A5B4C3';
+/* === THEME === */
+const COLORS = {
+  accent: '#6FB3FF',
+  bg: '#0B1220',
+  surface: '#111A2C',
+  card: '#0F1726',
+  border: '#1E2A44',
+  text: '#E6EDF3',
+  muted: '#A5B4C3',
+};
 
-function SkillChip({ label }: { label: string }) {
+// Small helpers to avoid repeating the family everywhere
+const MONO_REG = { fontFamily: 'JetBrainsMono-Regular', fontWeight: 'normal' as const };
+const MONO_BOLD = { fontFamily: 'JetBrainsMono-Bold', fontWeight: 'normal' as const };
+
+function Chip({ label }: { label: string }) {
   return (
     <TouchableOpacity activeOpacity={0.85} style={styles.chip}>
       <Text style={styles.chipText}>{label}</Text>
@@ -20,41 +30,62 @@ function SkillChip({ label }: { label: string }) {
   );
 }
 
+function SectionCard({ title, children }: React.PropsWithChildren<{ title: string }>) {
+  return (
+    <View style={styles.sectionCard}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
 export default function HomeScreen() {
   return (
-    <View style={styles.screen}> 
-      <ScrollView
-        style={styles.scroller}                 // ✅ colors the scrollable surface
-        contentContainerStyle={styles.container} // spacing/padding lives here
-      >
-        {/* HERO */}
-        <View style={styles.hero}>
-          <View style={styles.avatarRing}>
-            <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+    <View style={styles.screen}>
+      {/* === BACKDROP (bleed) === */}
+      <View pointerEvents="none" style={styles.backdropWrap}>
+        <Image source={HERO_BG} style={styles.backdropImage} resizeMode="cover" />
+        <BlurView intensity={10} tint="dark" style={StyleSheet.absoluteFill} />
+        <LinearGradient
+          colors={['rgba(11,18,32,0)', 'rgba(11,18,32,0.6)', COLORS.bg]}
+          locations={[0.4, 0.7, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+
+      <ScrollView style={styles.scroller} contentContainerStyle={styles.container}>
+        {/* === HERO === */}
+        <ImageBackground source={HERO_BG} resizeMode="cover" style={styles.heroBg}>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.0)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.heroContent}>
+            <View style={styles.avatarRing}>
+              <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+            </View>
+            <Text style={styles.welcome}>Welcome to my Portfolio</Text>
+            <Text style={styles.headline}>
+              Hi I’m <Text style={styles.headlineAccent}>Jomar Jake Mapa</Text>
+            </Text>
+            <Text style={styles.roleLine}>AI Developer • ML Engineer</Text>
           </View>
+        </ImageBackground>
 
-          <Text style={styles.welcome}>Welcome to my Portfolio</Text>
-
-          <Text style={styles.headline}>
-            Hi I’m <Text style={styles.headlineAccent}>Jomar Jake Mapa</Text>
-          </Text>
-          <Text style={styles.roleLine}>Developer</Text>
-        </View>
-
-        {/* Header */}
-        <View style={styles.header}>
+        {/* === HEADER CARD === */}
+        <View style={styles.headerCard}>
           <Text style={styles.name}>Jomar Jake Mapa</Text>
           <Text style={styles.tagline}>AI Developer | ML guy</Text>
         </View>
 
-        {/* Bio */}
+        {/* === BIO === */}
         <Text style={styles.bio}>
-          Welcome to my portfolio! I enjoy games and stuffs and also developing AI/ML applications.
+          I build practical AI/ML apps, from computer vision and NLP to deployable models.
+          I also love games, tinkering, and teaching what I learn.
         </Text>
 
-        {/* Skills */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Skills</Text>
+        {/* === SKILLS === */}
+        <SectionCard title="Skills">
           <View style={styles.chipsWrap}>
             {[
               'Python',
@@ -63,7 +94,6 @@ export default function HomeScreen() {
               'Scikit-learn',
               'Pandas',
               'NumPy',
-              'Matplotlib / Seaborn',
               'Data Visualization',
               'Deep Learning',
               'Computer Vision',
@@ -76,154 +106,135 @@ export default function HomeScreen() {
               'Data Engineering',
               'AI Ethics',
             ].map((s) => (
-              <SkillChip key={s} label={s} />
+              <Chip key={s} label={s} />
             ))}
           </View>
-        </View>
+        </SectionCard>
 
-        {/* Projects */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Featured Projects</Text>
+        {/* === PROJECTS === */}
+        <SectionCard title="Featured Projects">
           <Text style={styles.sectionText}>[Projects preview will go here]</Text>
-        </View>
+        </SectionCard>
 
-        {/* Contact */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Get In Touch</Text>
+        {/* === CONTACT === */}
+        <SectionCard title="Get In Touch">
           <Text style={styles.sectionText}>[Contact info / form will go here]</Text>
-        </View>
+        </SectionCard>
       </ScrollView>
     </View>
   );
 }
 
+/* === STYLES === */
+const { bg, surface, card, border, text, muted, accent } = COLORS;
+
 const styles = StyleSheet.create({
-  // ✅ Make the whole screen dark (catches safe area + overscroll)
-  screen: {
-    flex: 1,
-    backgroundColor: BG,
+  screen: { flex: 1, backgroundColor: bg },
+
+  // Backdrop sits behind everything and extends beyond edges to create the "bleed"
+  backdropWrap: {
+    position: 'absolute',
+    top: -120,
+    left: -40,
+    right: -40,
+    height: 320,
+    borderRadius: 32,
+    overflow: 'hidden',
   },
-  // ✅ Color the ScrollView itself (prevents white peeking between items)
-  scroller: {
-    backgroundColor: BG,
+  backdropImage: {
+    width: '100%',
+    height: '100%',
   },
 
+  scroller: { backgroundColor: 'transparent' },
   container: {
     paddingHorizontal: 20,
-    paddingTop: 36,
+    paddingTop: 24,
     paddingBottom: 32,
-    // optional: could remove backgroundColor here, since scroller/screen already set
-    // backgroundColor: BG,
   },
 
-  /* === HERO === */
-  hero: {
-    alignItems: 'center',
-    marginBottom: 24,
+  /* HERO with its own crisp image + soft overlay */
+  heroBg: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 16,
   },
+  heroContent: {
+    alignItems: 'center',
+    paddingTop: 36,
+    paddingBottom: 28,
+    paddingHorizontal: 16,
+  },
+
   avatarRing: {
     width: 140,
     height: 140,
     borderRadius: 140,
-    backgroundColor: CARD,
+    backgroundColor: card,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: border,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    // Android shadows need elevation to show; keep it subtle so it blends with dark bg
     elevation: 4,
   },
-  avatar: {
-    width: 124,
-    height: 124,
-    borderRadius: 124,
-  },
-  welcome: {
-    fontSize: 13,
-    color: MUTED,
-    marginBottom: 4,
-  },
+  avatar: { width: 124, height: 124, borderRadius: 124 },
+
+  // ======= TEXT STYLES (JetBrains Mono) =======
+  welcome: { ...MONO_REG, fontSize: 13, color: muted, marginBottom: 4 },
   headline: {
+    ...MONO_BOLD,
     fontSize: 28,
-    fontWeight: '800',
-    color: TEXT,
+    color: text,
     textAlign: 'center',
     lineHeight: 32,
   },
-  headlineAccent: {
-    color: ACCENT,
-  },
-  roleLine: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#B8C6D8',
-    textAlign: 'center',
-    lineHeight: 26,
-  },
+  headlineAccent: { ...MONO_BOLD, color: '#0B1220' },
+  roleLine: { ...MONO_BOLD, fontSize: 20, color: '#0B1220', textAlign: 'center', marginTop: 6 },
 
-  /* === HEADER === */
-  header: {
-    backgroundColor: SURFACE,
-    borderRadius: 12,
-    paddingVertical: 40,
+  headerCard: {
+    backgroundColor: surface,
+    borderRadius: 14,
+    paddingVertical: 28,
     paddingHorizontal: 16,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: border,
   },
-  name: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: TEXT,
-    marginBottom: 8,
-  },
-  tagline: {
-    fontSize: 16,
-    color: MUTED,
-  },
+  name: { ...MONO_BOLD, fontSize: 28, color: text, marginBottom: 6 },
+  tagline: { ...MONO_REG, fontSize: 15, color: muted },
 
   bio: {
+    ...MONO_REG,
     fontSize: 15,
-    color: MUTED,
+    color: muted,
     lineHeight: 22,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
   },
 
-  /* === CARDS === */
   sectionCard: {
-    backgroundColor: SURFACE,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: surface,
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: border,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: ACCENT,
-    marginBottom: 12,
+    ...MONO_BOLD,
+    fontSize: 18,
+    color: accent,
+    marginBottom: 10,
     textAlign: 'center',
   },
-  sectionText: {
-    fontSize: 14,
-    color: MUTED,
-    textAlign: 'center',
-  },
+  sectionText: { ...MONO_REG, fontSize: 14, color: muted, textAlign: 'center' },
 
-  /* === CHIPS === */
-  chipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'center',
-  },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -232,9 +243,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2D406B',
   },
-  chipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: ACCENT,
-  },
+  chipText: { ...MONO_REG, fontSize: 13, color: accent, letterSpacing: 0.2 },
 });
