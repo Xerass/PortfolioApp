@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   headlineAccent: { ...MONO_BOLD, color: '#0B1220' },
   roleLine: { ...MONO_BOLD, fontSize: 20, color: '#0B1220', textAlign: 'center', marginTop: 6 },
 
+  
   headerCard: {
     backgroundColor: surface,
     borderRadius: 14,
