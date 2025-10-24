@@ -10,7 +10,9 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 export { ErrorBoundary } from 'expo-router';
 
-export const unstable_settings = { initialRouteName: '(tabs)' };
+export const unstable_settings = {
+  initialRouteName: 'login', // Start at Login
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -60,13 +62,19 @@ function RootLayoutNav() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkAppTheme : DefaultTheme}>
       <Stack
         screenOptions={{
-          contentStyle: { backgroundColor: BG },
           headerShown: false,
+          contentStyle: { backgroundColor: BG }, // match your dark bg
         }}
       >
+        {/* Login-first flow */}
+        <Stack.Screen name="login" />
+
+        {/* Your main app lives under the tabs folder */}
         <Stack.Screen name="(tabs)" />
+
+        {/* Example modal (kept from the template; remove if unused) */}
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
-  );
+  )
 }

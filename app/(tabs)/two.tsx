@@ -1,29 +1,29 @@
-// app/(tabs)/two.tsx
 import { useEffect, useState } from 'react'
-import { StyleSheet, TextInput, Button, Alert } from 'react-native'
+import { StyleSheet, TextInput, Button, Alert, TouchableOpacity } from 'react-native'
 import { Text, View } from '@/components/Themed'
+import { useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 
 export default function TabTwoScreen() {
   const [clientOk, setClientOk] = useState<'...' | '✅' | '❌'>('...')
   const [sessionOk, setSessionOk] = useState<'...' | '✅' | '❌'>('...')
-  const [table, setTable] = useState('')          // type a table name to try (e.g., notes)
+  const [table, setTable] = useState('')
   const [rowsPreview, setRowsPreview] = useState<string>('(no data)')
+  const router = useRouter()
 
-  // 1) Basic client/env sanity
+  // --- 1) Check env vars
   useEffect(() => {
     const hasUrl = !!process.env.EXPO_PUBLIC_SUPABASE_URL
     const hasKey = !!process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
     setClientOk(hasUrl && hasKey ? '✅' : '❌')
   }, [])
 
-  // 2) Ping Supabase by asking for session (works even logged out)
+  // --- 2) Ping Supabase
   useEffect(() => {
     (async () => {
       try {
         const { data, error } = await supabase.auth.getSession()
         if (error) throw error
-        // data.session can be null if not logged in; that’s fine — it still proves the client works
         setSessionOk('✅')
       } catch (e) {
         console.log('[getSession error]', e)
@@ -32,6 +32,7 @@ export default function TabTwoScreen() {
     })()
   }, [])
 
+  // --- 3) Test read
   async function trySelect() {
     if (!table.trim()) {
       Alert.alert('Enter a table name', 'Example: notes')
@@ -46,6 +47,17 @@ export default function TabTwoScreen() {
       console.log('[select error]', e)
       setRowsPreview('(no data)')
       Alert.alert('Query failed', e.message ?? String(e))
+    }
+  }
+
+  // --- 4) Logout
+  async function onLogout() {
+    try {
+      await supabase.auth.signOut()
+      Alert.alert('Signed out', 'You have been logged out.')
+      router.replace('/login')  // redirect back to login screen
+    } catch (e: any) {
+      Alert.alert('Logout failed', e.message ?? String(e))
     }
   }
 
@@ -76,6 +88,10 @@ export default function TabTwoScreen() {
         </View>
       </View>
 
+      <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
+
       <Text style={{ marginTop: 12, opacity: 0.7 }}>
         Tip: create a table like "notes" with RLS policies to test reads.
       </Text>
@@ -91,4 +107,12 @@ const styles = StyleSheet.create({
   sub: { fontWeight: '600', marginBottom: 6 },
   input: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 8 },
   previewBox: { borderWidth: 1, borderRadius: 8, padding: 10, minHeight: 120 },
+  logoutBtn: {
+    marginTop: 24,
+    backgroundColor: '#6FB3FF',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  logoutText: { color: '#0B1220', fontWeight: '700' },
 })
