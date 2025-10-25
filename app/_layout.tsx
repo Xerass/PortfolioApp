@@ -2,6 +2,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import { Text as RNText, TextInput as RNTextInput } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -47,7 +48,25 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
+    if (loaded) {
+      // Apply JetBrains Mono as the default font for all Text and TextInput components
+      // This ensures visible pages and inputs use the font without changing every component.
+      try {
+        ;(RNText as any).defaultProps = {
+          ...(RNText as any).defaultProps,
+          style: [{ fontFamily: 'JetBrainsMono-Regular' }, (RNText as any).defaultProps?.style],
+        };
+        ;(RNTextInput as any).defaultProps = {
+          ...(RNTextInput as any).defaultProps,
+          style: [{ fontFamily: 'JetBrainsMono-Regular' }, (RNTextInput as any).defaultProps?.style],
+        };
+      } catch (e) {
+        // noop - defaultProps might be readonly in some environments; ignore if so
+        console.log('apply default font failed', e);
+      }
+
+      SplashScreen.hideAsync();
+    }
   }, [loaded]);
 
   if (!loaded) return null;

@@ -1,9 +1,10 @@
 // app/(tabs)/_layout.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { supabase } from '@/lib/supabase';
 
 const BG = '#0B1220';
 const SURFACE = '#111A2C';
@@ -18,6 +19,34 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const uid = session?.user?.id;
+        if (!uid) return setIsAdmin(false);
+
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', uid)
+          .limit(1)
+          .single();
+        if (error) throw error;
+        if (!mounted) return;
+        setIsAdmin(data?.role === 'admin');
+      } catch (e) {
+        console.log('role check failed', e);
+        if (mounted) setIsAdmin(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
   return (
     <Tabs
       screenOptions={{
@@ -67,6 +96,16 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
+
+      {/* Keep existing dev/playground screen (two.tsx) but label it Tools */}
+      <Tabs.Screen
+        name="two"
+        options={{
+          title: 'Tools',
+          tabBarIcon: ({ color }) => <TabBarIcon name="wrench" color={color} />,
+        }}
+      />
+
       <Tabs.Screen
         name="projects"
         options={{
@@ -74,20 +113,26 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="folder" color={color} />,
         }}
       />
+
       <Tabs.Screen
-        name="about"
+        name="contacts"
         options={{
-          title: 'About',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="contact"
-        options={{
-          title: 'Contact',
+          title: 'Contacts',
           tabBarIcon: ({ color }) => <TabBarIcon name="envelope" color={color} />,
         }}
       />
+
+      {/* Admin-only: Post page for creating projects */}
+      {isAdmin && (
+        <Tabs.Screen
+          name="post"
+          options={{
+            title: 'Post',
+            tabBarIcon: ({ color }) => <TabBarIcon name="plus-circle" color={color} />,
+          }}
+        />
+      )}
+      {/* edit route is now top-level (app/edit/[id].tsx) so it is not part of the tab bar */}
     </Tabs>
   );
 }

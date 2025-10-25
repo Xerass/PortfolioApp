@@ -34,7 +34,18 @@ export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
-  return <DefaultText style={[{ color }, style]} {...otherProps} />;
+  // Normalize style (handle array styles) so we can inspect fontWeight
+  const flatStyle = Array.isArray(style)
+    ? Object.assign({}, ...style.filter(Boolean))
+    : style || {};
+
+  // Choose bold variant when a bold fontWeight is requested
+  let fontFamily = 'JetBrainsMono-Regular';
+  if (flatStyle.fontWeight === '700' || flatStyle.fontWeight === 'bold') {
+    fontFamily = 'JetBrainsMono-Bold';
+  }
+
+  return <DefaultText style={[{ color, fontFamily }, style]} {...otherProps} />;
 }
 
 export function View(props: ViewProps) {
