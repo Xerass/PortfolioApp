@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Image, ImageBackground, TouchableOpacity, ScrollView, View, Dimensions } from 'react-native';
+import { StyleSheet, Image, ImageBackground, TouchableOpacity, ScrollView, View, Dimensions, Alert } from 'react-native';
 import { Text } from '@/components/Themed';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { Linking } from 'react-native';
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 const AVATAR = require('@/assets/images/avatar.jpg');
 const HERO_BG = require('@/assets/images/bgHero.jpg');
 
@@ -74,6 +75,25 @@ export default function HomeScreen() {
   const [projects, setProjects] = useState<any[]>([])
   const router = useRouter()
 
+  function handleLogout() {
+    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await supabase.auth.signOut()
+            ;(router.replace as any)('/login')
+          } catch (e) {
+            console.log('sign out error', e)
+            Alert.alert('Error', 'Failed to sign out')
+          }
+        }
+      }
+    ])
+  }
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -136,7 +156,10 @@ export default function HomeScreen() {
         />
       </View>
 
-      <ScrollView style={styles.scroller} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroller}
+        contentContainerStyle={[styles.container, { paddingTop: SCREEN_HEIGHT * 0.05,paddingBottom: SCREEN_HEIGHT * 0.12 }]}
+      >
         {/* === HERO === */}
         <ImageBackground source={HERO_BG} resizeMode="cover" style={styles.heroBg}>
           <LinearGradient
@@ -155,7 +178,7 @@ export default function HomeScreen() {
           </View>
         </ImageBackground>
 
-        {/* === HEADER CARD === */}
+        {/* === HEADER CARD (no sign out button here anymore) === */}
         <View style={styles.headerCard}>
           <Text style={styles.name}>Jomar Jake Mapa</Text>
           <Text style={styles.tagline}>AI Developer | ML guy</Text>
@@ -206,15 +229,17 @@ export default function HomeScreen() {
             </ScrollView>
           )}
           <View style={{ height: 10 }} />
-            <TouchableOpacity onPress={() => (router.push as any)('/projects')} style={{ alignSelf: 'center' }}>
-              <Text style={{ color: '#6FB3FF', fontFamily: 'JetBrainsMono-Bold' }}>See all projects</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => (router.push as any)('/projects')} style={{ alignSelf: 'center' }}>
+            <Text style={{ color: '#6FB3FF', fontFamily: 'JetBrainsMono-Bold' }}>See all projects</Text>
+          </TouchableOpacity>
         </SectionCard>
 
-        {/* === CONTACT === */}
-        <SectionCard title="Get In Touch">
-          <Text style={styles.sectionText}>[Contact info / form will go here]</Text>
-        </SectionCard>
+        {/* === FOOTER (Sign out button anchored at the very bottom of content) === */}
+        <View style={styles.footer}>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtnLarge} activeOpacity={0.9}>
+            <Text style={styles.logoutTextLarge}>Sign out</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -287,10 +312,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 32,
   },
-  headlineAccent: { ...MONO_BOLD, color: '#0B1220' },
-  roleLine: { ...MONO_BOLD, fontSize: 20, color: '#0B1220', textAlign: 'center', marginTop: 6 },
+  headlineAccent: { ...MONO_BOLD, color: accent },
+  roleLine: { ...MONO_BOLD, fontSize: 20, color: accent, textAlign: 'center', marginTop: 6 },
 
-  
   headerCard: {
     backgroundColor: surface,
     borderRadius: 14,
@@ -354,4 +378,27 @@ const styles = StyleSheet.create({
   projectToolsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   toolChipSmall: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: '#12213a', borderWidth: 1, borderColor: '#243553' },
   projectDesc: { ...MONO_REG, color: muted, fontSize: 13, marginTop: 6 },
+
+  // Footer + Sign out button at bottom
+  footer: {
+    marginTop: 8,
+    paddingTop: 8,
+    alignItems: 'center',
+  },
+  logoutBtnLarge: {
+    alignSelf: 'stretch',
+    maxWidth: 480,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2D406B',
+    backgroundColor: 'transparent',
+  },
+  logoutTextLarge: {
+    ...MONO_BOLD,
+    color: accent,
+    textAlign: 'center',
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
 });

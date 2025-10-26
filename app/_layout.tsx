@@ -2,17 +2,18 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Text as RNText, TextInput as RNTextInput } from 'react-native';
+import { Text as RNText, TextInput as RNTextInput, View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
+import Backdrop from '@/components/Backdrop'; // ⬅️ add this
 
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: 'login', // Start at Login
+  initialRouteName: 'login',
 }
 
 SplashScreen.preventAutoHideAsync();
@@ -36,21 +37,16 @@ const DarkAppTheme = {
 };
 
 export default function RootLayout() {
-  // ✅ Load JetBrains Mono Regular + Bold
   const [loaded, error] = useFonts({
     'JetBrainsMono-Regular': require('../assets/fonts/JetBrainsMono-Regular.ttf'),
     'JetBrainsMono-Bold': require('../assets/fonts/JetBrainsMono-Bold.ttf'),
     ...FontAwesome.font,
   });
 
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  useEffect(() => { if (error) throw error; }, [error]);
 
   useEffect(() => {
     if (loaded) {
-      // Apply JetBrains Mono as the default font for all Text and TextInput components
-      // This ensures visible pages and inputs use the font without changing every component.
       try {
         ;(RNText as any).defaultProps = {
           ...(RNText as any).defaultProps,
@@ -60,17 +56,12 @@ export default function RootLayout() {
           ...(RNTextInput as any).defaultProps,
           style: [{ fontFamily: 'JetBrainsMono-Regular' }, (RNTextInput as any).defaultProps?.style],
         };
-      } catch (e) {
-        // noop - defaultProps might be readonly in some environments; ignore if so
-        console.log('apply default font failed', e);
-      }
-
+      } catch (e) { console.log('apply default font failed', e); }
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
   if (!loaded) return null;
-
   return <RootLayoutNav />;
 }
 
@@ -79,21 +70,23 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkAppTheme : DefaultTheme}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: BG }, // match your dark bg
-        }}
-      >
-        {/* Login-first flow */}
-        <Stack.Screen name="login" />
+      {/* Wrapper sets the solid page bg (visible after the gradient) */}
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        {/* 🔥 Global background (bleed + blur + fade) */}
+        <Backdrop />
 
-        {/* Your main app lives under the tabs folder */}
-        <Stack.Screen name="(tabs)" />
-
-        {/* Example modal (kept from the template; remove if unused) */}
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            // must be transparent so screens don't paint over the backdrop
+            contentStyle: { backgroundColor: 'transparent' },
+          }}
+        >
+          <Stack.Screen name="login" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        </Stack>
+      </View>
     </ThemeProvider>
   )
 }

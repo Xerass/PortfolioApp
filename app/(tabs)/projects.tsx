@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, ScrollView, Image, TouchableOpacity, View, ActivityIndicator, Alert } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Text } from '@/components/Themed'
 import { supabase } from '@/lib/supabase'
 import { Linking } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Dimensions } from 'react-native';
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 export default function ProjectsList() {
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
+  const HERO_BG = require('@/assets/images/bgHero.jpg')
 
   useEffect(() => {
     let mounted = true
@@ -41,14 +46,28 @@ export default function ProjectsList() {
 
   if (loading) {
     return (
-      <View style={styles.loadingWrap}>
-        <ActivityIndicator />
+      <View style={styles.screen}>
+        <View pointerEvents="none" style={styles.backdropWrap}>
+          <Image source={HERO_BG} style={styles.backdropImage} resizeMode="cover" />
+          <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={['rgba(11,18,32,0)', 'rgba(11,18,32,0.35)', 'rgba(11,18,32,0.7)', '#0B1220']} locations={[0.2,0.55,0.8,1]} style={StyleSheet.absoluteFill} />
+        </View>
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator />
+        </View>
       </View>
     )
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
+      <View pointerEvents="none" style={styles.backdropWrap}>
+        <Image source={HERO_BG} style={styles.backdropImage} resizeMode="cover" />
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['rgba(11,18,32,0)', 'rgba(11,18,32,0.35)', 'rgba(11,18,32,0.7)', '#0B1220']} locations={[0.2,0.55,0.8,1]} style={StyleSheet.absoluteFill} />
+      </View>
+
+      <ScrollView contentContainerStyle={[styles.container, { paddingTop: SCREEN_HEIGHT * 0.05,paddingBottom: SCREEN_HEIGHT * 0.10 }]}>
       <Text style={styles.title}>Projects</Text>
       {projects.map((p) => (
         <View key={p.id} style={[styles.card, { position: 'relative' }]}>
@@ -122,13 +141,32 @@ export default function ProjectsList() {
         </View>
       ))}
     </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#0B1220', paddingBottom: 40 },
-  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B1220' },
-  title: { fontSize: 22, color: '#6FB3FF', fontWeight: '700', marginBottom: 12 },
+  screen: { flex: 1, backgroundColor: '#0B1220' },
+  backdropWrap: {
+    position: 'absolute',
+    top: -160,
+    left: -40,
+    right: -40,
+    height: 380,
+    borderRadius: 32,
+    overflow: 'hidden',
+  },
+  backdropImage: { width: '100%', height: '100%' },
+  // allow the global Backdrop to be visible by using a transparent container
+  container: { padding: 16, backgroundColor: 'transparent', paddingBottom: 40 },
+  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
+  title: {
+  fontSize: 20,
+  fontWeight: 'normal', // keep 'normal' since JetBrainsMono-Bold already encodes weight
+  fontFamily: 'JetBrainsMono-Bold',
+  color: '#6FB3FF',
+  marginBottom: 12,
+},
   card: { backgroundColor: '#0F1726', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#1E2A44', marginBottom: 14 },
   image: { width: '100%', height: 180, borderRadius: 8, marginBottom: 10 },
   projectTitle: { fontSize: 18, color: '#E6EDF3', fontFamily: 'JetBrainsMono-Bold', marginBottom: 8 },

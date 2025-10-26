@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, TextInput, Button, Alert, Switch, View, ScrollView, Image, ActivityIndicator, Platform } from 'react-native'
+import { StyleSheet, TextInput, Alert, Switch, View, ScrollView, Image, ActivityIndicator, Platform, TouchableOpacity, Dimensions } from 'react-native'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Text } from '@/components/Themed'
 import { supabase } from '@/lib/supabase'
 import * as ImagePicker from 'expo-image-picker'
+
+const SCREEN_HEIGHT = Dimensions.get('window').height
+
+// ---- JetBrains Mono helpers ----
+const MONO_REG = { fontFamily: 'JetBrainsMono-Regular', fontWeight: 'normal' as const }
+const MONO_BOLD = { fontFamily: 'JetBrainsMono-Bold', fontWeight: 'normal' as const }
 
 export default function PostScreen() {
   const [loading, setLoading] = useState(false)
@@ -33,8 +41,6 @@ export default function PostScreen() {
     })()
   }, [])
 
-  // no editing behavior here; post.tsx is for new posts only
-
   async function pickImage() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -42,7 +48,10 @@ export default function PostScreen() {
         Alert.alert('Permission required', 'Please allow access to photos to upload a cover image.')
         return
       }
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 })
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8
+      })
       if (res.canceled) return
       const asset = res.assets?.[0]
       if (!asset?.uri) return
@@ -56,7 +65,6 @@ export default function PostScreen() {
   async function uploadImage(uri: string) {
     try {
       setUploading(true)
-      // fetch the file
       const fetchRes = await fetch(uri)
       const blob = await fetchRes.blob()
 
@@ -120,6 +128,8 @@ export default function PostScreen() {
     }
   }
 
+  const HERO_BG = require('@/assets/images/bgHero.jpg')
+
   if (!isAdmin) {
     return (
       <View style={styles.container}>
@@ -130,60 +140,181 @@ export default function PostScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Post a Project</Text>
+    <View style={styles.screen}>
+      <View pointerEvents="none" style={styles.backdropWrap}>
+        <Image source={HERO_BG} style={styles.backdropImage} resizeMode="cover" />
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <LinearGradient
+          colors={['rgba(11,18,32,0)', 'rgba(11,18,32,0.35)', 'rgba(11,18,32,0.7)', '#0B1220']}
+          locations={[0.2, 0.55, 0.8, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
-  <Text style={styles.label}>Title</Text>
-  <TextInput placeholder="Project title" placeholderTextColor="#8A99B5" value={title} onChangeText={setTitle} style={styles.input} />
+      <ScrollView contentContainerStyle={[styles.container, { paddingTop: SCREEN_HEIGHT * 0.05, paddingBottom: SCREEN_HEIGHT * 0.10 }]}>
+        <Text style={styles.title}>Post a Project</Text>
 
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        placeholder="Short description"
-        placeholderTextColor="#8A99B5"
-        value={description}
-        onChangeText={setDescription}
-        style={[styles.input, { height: 100 }]}
-        multiline
-      />
+        <Text style={styles.label}>Title</Text>
+        <TextInput
+          placeholder="Project title"
+          placeholderTextColor="#8A99B5"  // slightly opaque placeholder
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+        />
 
-      <Text style={styles.label}>GitHub URL</Text>
-  <TextInput placeholder="https://github.com/owner/repo" placeholderTextColor="#8A99B5" value={githubUrl} onChangeText={setGithubUrl} style={styles.input} autoCapitalize="none" />
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          placeholder="Short description"
+          placeholderTextColor="#8A99B5"  // slightly opaque placeholder
+          value={description}
+          onChangeText={setDescription}
+          style={[styles.input, { height: 100 }]}
+          multiline
+        />
 
-      <Text style={styles.label}>Cover image</Text>
-      {coverUrl ? (
-        <Image source={{ uri: coverUrl }} style={{ width: '100%', height: 160, borderRadius: 10, marginBottom: 8 }} />
-      ) : (
-        <View style={{ height: 160, borderRadius: 10, backgroundColor: '#0F1726', borderWidth: 1, borderColor: '#1E2A44', marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#8A99B5' }}>No cover selected</Text>
+        <Text style={styles.label}>GitHub URL</Text>
+        <TextInput
+          placeholder="https://github.com/owner/repo"
+          placeholderTextColor="#8A99B5"  // slightly opaque placeholder
+          value={githubUrl}
+          onChangeText={setGithubUrl}
+          style={styles.input}
+          autoCapitalize="none"
+        />
+
+        <Text style={styles.label}>Cover image</Text>
+        {coverUrl ? (
+          <Image source={{ uri: coverUrl }} style={{ width: '100%', height: 160, borderRadius: 10, marginBottom: 8 }} />
+        ) : (
+          <View style={styles.noCoverBox}>
+            <Text style={styles.noCoverText}>No cover selected</Text>
+          </View>
+        )}
+
+        {/* Pick image button (styled) */}
+        <View style={{ marginBottom: 8 }}>
+          <TouchableOpacity
+            onPress={pickImage}
+            activeOpacity={0.85}
+            disabled={uploading}
+            style={[styles.btn, uploading && styles.btnDisabled]}
+          >
+            {uploading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text style={styles.btnText}>Pick an image</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      )}
-      <View style={{ marginBottom: 8 }}>
-        <Button title={uploading ? 'Uploading...' : 'Pick an image'} onPress={pickImage} disabled={uploading} />
-      </View>
 
-      <Text style={styles.label}>Tools (comma separated)</Text>
-  <TextInput placeholder="React, TypeScript, Supabase" placeholderTextColor="#8A99B5" value={toolsCsv} onChangeText={setToolsCsv} style={styles.input} />
+        <Text style={styles.label}>Tools (comma separated)</Text>
+        <TextInput
+          placeholder="React, TypeScript, Supabase"
+          placeholderTextColor="#8A99B5"  // slightly opaque placeholder
+          value={toolsCsv}
+          onChangeText={setToolsCsv}
+          style={styles.input}
+        />
 
-      <View style={styles.row}> 
-        <Text style={styles.label}>Publish</Text>
-        <Switch value={published} onValueChange={setPublished} />
-      </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Publish</Text>
+          <Switch value={published} onValueChange={setPublished} />
+        </View>
 
-      <View style={{ height: 12 }} />
-      {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title={'Create Project'} onPress={onSubmit} />
-      )}
-    </ScrollView>
+        <View style={{ height: 12 }} />
+
+        {/* Create Project button (styled) */}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <TouchableOpacity
+            onPress={onSubmit}
+            activeOpacity={0.85}
+            style={styles.btn}
+          >
+            <Text style={styles.btnText}>Create Project</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, flexGrow: 1, backgroundColor: '#0B1220' },
-  title: { fontSize: 20, fontWeight: '700', color: '#6FB3FF', marginBottom: 12 },
-  note: { color: '#A5B4C3' },
-  label: { color: '#A5B4C3', marginBottom: 6, marginTop: 10 },
-  input: { backgroundColor: '#0F1726', borderRadius: 8, padding: 10, color: '#E6EDF3', borderWidth: 1, borderColor: '#1E2A44' },
+  screen: { flex: 1, backgroundColor: '#0B1220' },
+
+  backdropWrap: {
+    position: 'absolute',
+    top: -160,
+    left: -40,
+    right: -40,
+    height: 380,
+    borderRadius: 32,
+    overflow: 'hidden',
+  },
+  backdropImage: { width: '100%', height: '100%' },
+
+  // make the content container transparent so the local backdrop is visible
+  container: { padding: 16, flexGrow: 1, backgroundColor: 'transparent' },
+
+  title: {
+    ...MONO_BOLD,
+    fontSize: 20,
+    color: '#6FB3FF',
+    marginBottom: 12,
+  },
+  note: { ...MONO_REG, color: '#A5B4C3' },
+
+  label: {
+    ...MONO_REG,
+    color: '#A5B4C3',
+    marginBottom: 6,
+    marginTop: 10,
+  },
+
+  input: {
+    ...MONO_REG,
+    backgroundColor: '#0F1726',
+    borderRadius: 8,
+    padding: 10,
+    color: '#E6EDF3',
+    borderWidth: 1,
+    borderColor: '#1E2A44',
+  },
+
+  noCoverBox: {
+    height: 160,
+    borderRadius: 10,
+    backgroundColor: '#0F1726',
+    borderWidth: 1,
+    borderColor: '#1E2A44',
+    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noCoverText: {
+    ...MONO_REG,
+    color: '#8A99B5', // muted/opaque-ish for default state
+  },
+
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
+
+  // --- Buttons (Mono-styled) ---
+  btn: {
+    backgroundColor: '#1A2642',
+    borderWidth: 1,
+    borderColor: '#2D406B',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnDisabled: { opacity: 0.6 },
+  btnText: {
+    ...MONO_BOLD,
+    fontSize: 14,
+    color: '#6FB3FF',
+    letterSpacing: 0.2,
+  },
 })

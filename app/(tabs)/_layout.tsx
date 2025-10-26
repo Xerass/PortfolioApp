@@ -47,25 +47,18 @@ export default function TabLayout() {
       mounted = false;
     };
   }, []);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-
-        // Screen background (prevents white peeking during transitions)
         sceneStyle: { backgroundColor: BG },
-
-        // Tab icon/label colors
         tabBarActiveTintColor: ACCENT,
         tabBarInactiveTintColor: MUTED,
-
-        // Label style (JetBrains Mono if you loaded it)
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: 'JetBrainsMono-Regular',
         },
-
-        // Floating, muted, dark bar
         tabBarStyle: {
           position: 'absolute',
           bottom: 16,
@@ -73,17 +66,15 @@ export default function TabLayout() {
           right: 20,
           height: 58,
           paddingBottom: 6,
-          backgroundColor: 'rgba(17,26,44,0.85)', // semi-transparent SURFACE
+          backgroundColor: 'rgba(17,26,44,0.85)',
           borderTopWidth: 0,
           borderRadius: 18,
-          elevation: 8, // Android shadow
-          shadowColor: '#000', // iOS shadow
+          elevation: 8,
+          shadowColor: '#000',
           shadowOpacity: 0.25,
           shadowRadius: 12,
           shadowOffset: { width: 0, height: 6 },
         },
-
-        // Soft frosted effect under the bar
         tabBarBackground: () => (
           <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
         ),
@@ -94,15 +85,6 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-        }}
-      />
-
-      {/* Keep existing dev/playground screen (two.tsx) but label it Tools */}
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tools',
-          tabBarIcon: ({ color }) => <TabBarIcon name="wrench" color={color} />,
         }}
       />
 
@@ -117,12 +99,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contacts"
         options={{
-          title: 'Contacts',
+          title: 'Contact',
           tabBarIcon: ({ color }) => <TabBarIcon name="envelope" color={color} />,
         }}
       />
 
-      {/* Admin-only: Post page for creating projects */}
       {isAdmin && (
         <Tabs.Screen
           name="post"
@@ -132,7 +113,6 @@ export default function TabLayout() {
           }}
         />
       )}
-      {/* edit route is now top-level (app/edit/[id].tsx) so it is not part of the tab bar */}
     </Tabs>
   );
 }
