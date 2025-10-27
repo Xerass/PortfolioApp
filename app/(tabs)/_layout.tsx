@@ -103,7 +103,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="envelope" color={color} />,
         }}
       />
-
+      <Tabs.Screen
+        name="chat"
+        options={{ title: 'Chat', tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} /> }}
+      />
       {isAdmin && (
         <Tabs.Screen
           name="post"
